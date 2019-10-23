@@ -2,6 +2,7 @@ package ist.java.server;
 
 import ist.java.data.Blog;
 import ist.java.data.BlogPost;
+import ist.java.request.*;
 import java.net.*;
 import java.io.*;
 import java.util.*;
@@ -9,6 +10,7 @@ import java.util.*;
 public class BlogServer {
 
     private static Blog blog = new Blog();
+    private static PostRequest postReq = new PostRequest();
 
     public static void main(String... args){
         try{
@@ -37,7 +39,9 @@ public class BlogServer {
                     System.out.println("Going to blog to read latest tweet");
                     BlogPost post = (BlogPost)blog.readOne();
                     PrintWriter pr = new PrintWriter(skt.getOutputStream());
-                    pr.println(post.toJson());
+                   // pr.println(post.toJson());
+                    pr.println(postReq.formatPost(post.toJson()));
+                    // looks like JSON object
                     pr.flush();
 
                 }
