@@ -7,6 +7,10 @@ import java.util.Date;
 
 public class BlogPost extends AbstractPost {
 
+    public BlogPost(){
+
+    }
+
     public BlogPost(String author, String tweet){
         this.author = author;
         this.tweet = tweet;
@@ -21,17 +25,23 @@ public class BlogPost extends AbstractPost {
         return this.author;
     }
 
-    public void setTweet(String tweet){
+    public void setMessage(String tweet){
         this.tweet = tweet;
     }
 
-    public String getTweet(){
+    public String getMessage(){
         return this.tweet;
+    }
+
+    public void setTime(){
+        this.timestamp = new Date();
     }
 
     // public String toJson() {
     //     return new Gson().toJson(this);
     // }
+
+    // returns a JSON object ^ 
 
     /*
     @Override

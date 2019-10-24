@@ -25,6 +25,7 @@ public class BlogServer {
             System.out.println("Client connected");
             String choice = "";
 
+
             // TODO: create a while loop!! but how??
             //while(choice.equals("0")!=true){
                 InputStreamReader in = new InputStreamReader(skt.getInputStream());
@@ -35,21 +36,33 @@ public class BlogServer {
                 // NOTE: wants us to use "instanceof" here
                 // CURRENT: choice = null?
                 if (choice.equals("1")==true){
+                    BlogPost tweet = new BlogPost();
+                    tweet.setAuthor(bf.readLine());
+                    tweet.setMessage(bf.readLine());
+                    tweet.setTime();
+                    System.out.println("Tweet message = "+tweet.getMessage());
+                    // NOTE: this works!!! (with client code)
+                    // However: Document says that this should be wrapped in 
+                    // PostSubmission class before being sent over (ignoring for now)
+                    // TODO: add this tweet to tweets
+                    blog.addTweet(tweet);
+                }
+                if (choice.equals("2")==true){
                     // read latest tweet
                     System.out.println("Going to blog to read latest tweet");
                     BlogPost post = (BlogPost)blog.readOne();
+                    // TODO: need to convert post into a readable thing
                     PrintWriter pr = new PrintWriter(skt.getOutputStream());
-                   // pr.println(post.toJson());
-                    pr.println(postReq.formatPost(post.toJson()));
-                    // looks like JSON object
+                    pr.println(postReq.formatPost(post.toJson())); // param has to be string
+                    // post.toJson() looks like JSON object
                     pr.flush();
 
                 }
-                else if (choice.equals("2")==true){
+                else if (choice.equals("3")==true){
                     // read all tweets
                     blog.readAll();
                 }
-                else if (choice.equals("3")==true){
+                else if (choice.equals("4")==true){
                     // read your tweets
                     blog.readOwnPost();
                 }
