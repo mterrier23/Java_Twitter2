@@ -4,6 +4,9 @@ import java.io.*;
 import java.util.LinkedList;
 import java.util.List;
 import java.io.FileReader;
+import org.json.JSONObject;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.json.simple.*;
@@ -16,10 +19,10 @@ public class Blog implements Readable, Writable{
     public Blog(){
         tweets = new LinkedList<>();
         try{
+            // NOTE: this gets called twice ! how many times does Blog() get set? 
             populateFromDisk();            
             // NOTE: reads from the database
         }
-        //TODO
         catch (IOException e){
             e.printStackTrace();
             System.out.println("IOException caught");
@@ -43,68 +46,48 @@ public class Blog implements Readable, Writable{
         InputStream is = new FileInputStream("database");
         BufferedReader buf = new BufferedReader(new InputStreamReader(is));
         String json_tweet = buf.readLine();
-
-        while(json_tweet != null){
-            // need to undo json stuff to be able to add into this
-            JSONObject obj = new JSONObject(json_tweet);
-            tweets.add(new BlogPost(obj.getString("author"),obj.getString("tweet"), obj.getString("timestamp"));
-            json_tweet = buf.readLine();
+        System.out.println("Going in while loop");
+        try {
+            while(json_tweet != null){
+                JSONObject obj = new JSONObject(json_tweet); 
+                SimpleDateFormat formatter = new SimpleDateFormat("MMM dd, yyyy H:m:s a");
+                Date timestamp = formatter.parse(obj.getString("timestamp"));
+                tweets.add(new BlogPost(obj.getString("author"),obj.getString("tweet"), timestamp));
+                json_tweet = buf.readLine();
+            }
+        }catch(Exception e){
+            e.printStackTrace();
         }
-
         System.out.println("Read from database into tweets object");
-        System.out.prinlnt("Top tweet = "+ tweets.getFirst());
-
-       // File database = new File("database");
-        //FileInputStream fin = new FileInputStream(database);
-        // causing issues :/
-       // ObjectInputStream objfin = new ObjectInputStream(new FileInputStream("database"));
-       // AbstractPost tweet = (AbstractPost) objfin.readObject();
-       // tweets.add(tweet);
-       // OutputStream fout = new FileOutputStream("database2");
-       // OutputStream fout2 = System.out;
-
-  /*     
-        System.out.println("Entering populate while loop");
-        int val = fin.read();
-        while(val != -1){
-            fout2.write(val);
-            tweets.add(fin.read().readObject());
-            val = fin.read();
-        }
-        System.out.println("Exiting populate while loop");
-*/
-        // copies database into a new file database2
-
-
-        //fin.close();
-        //fout.close();
+        is.close();
     }
 
     public AbstractPost readOne(){
         // we have database file 
-        System.out.println("in readOne");
-        System.out.println("Tweets # = "+ tweets.size());
-        //System.out.println(tweets.get(0));
-        // tweet is empty at this point :( 
-        System.out.println("Returning latest tweet");
+        System.out.println("Tweets # = "+ tweets.size()); 
+        // System.out.println("Returning latest tweet"); // make sure it's from top and not bottom? or vice versa
         return tweets.get(0);
     }
 
     public List<AbstractPost> readAll(){
-       // tweets = new tweets<AbstractPost>();
-        //tweets.add(post);
-        System.out.println("Return all tweets");
-        // DO SOMETHING
-        // returns all tweets from server
-
-        return null;
+        System.out.println("In Blog readAll");
+        return tweets;
     }
 
-    public List<AbstractPost> readOwnPost(){
+
+    public List<AbstractPost> readOwnPost(String username){
         System.out.println("Return own tweets");
         // DO SOMETHING
         // returns only tweets from the same author from server
-        return null;
+
+        // TODO need a new variable!!
+        List<AbstractPost> myTweets = new LinkedList<>();
+        for (AbstractPost tweet : tweets){
+            if (tweet.getAuthor().equals(username)==true){
+                myTweets.add(tweet);
+            }
+        }
+        return myTweets;
     }
 
     public void addTweet(AbstractPost tweet){
@@ -121,7 +104,7 @@ public class Blog implements Readable, Writable{
         try {
             fr = new FileWriter(file);
             for (AbstractPost tweet : tweets){
-                fr.write(tweet.toJson());
+                fr.write(tweet.toJson()+"\n");
             }
         } catch (IOException e) {
             e.printStackTrace();

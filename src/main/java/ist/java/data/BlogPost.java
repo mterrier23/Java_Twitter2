@@ -11,6 +11,12 @@ public class BlogPost extends AbstractPost {
 
     }
 
+    public BlogPost(String author, String tweet, Date timestamp){
+        this.author = author;
+        this.tweet = tweet;
+        this.timestamp = timestamp;
+    }
+
     public BlogPost(String author, String tweet){
         this.author = author;
         this.tweet = tweet;
@@ -19,10 +25,6 @@ public class BlogPost extends AbstractPost {
 
     public void setAuthor(String author){
         this.author = author;
-    }
-
-    public String getAuthor(){
-        return this.author;
     }
 
     public void setMessage(String tweet){

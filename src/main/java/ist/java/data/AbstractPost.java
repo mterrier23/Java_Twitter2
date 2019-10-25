@@ -10,6 +10,9 @@ public abstract class AbstractPost implements Serializable {
     protected String tweet;
     protected Date timestamp;
 
+    public String getAuthor(){
+        return this.author;
+    }
 
     public String toJson() {
         return new Gson().toJson(this);

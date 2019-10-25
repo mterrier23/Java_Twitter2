@@ -10,6 +10,7 @@ import java.util.*;
 public class BlogServer {
 
     private static Blog blog = new Blog();
+    // TODO: consider going thru postreq or postsub each time we want to access Blog ? prevents us from calling it twice!
     private static PostRequest postReq = new PostRequest();
 
     public static void main(String... args){
@@ -21,17 +22,28 @@ public class BlogServer {
             ServerSocket connection = new ServerSocket(4040);
             System.out.println("Waiting for request...");
             Socket skt = connection.accept();
-
             System.out.println("Client connected");
+
+            
+            // used for sending to the client <-- close at the bottom
+            OutputStream out = skt.getOutputStream();
+            ObjectOutputStream oout = new ObjectOutputStream(out);
+
+            // used when reading from the client !
+            InputStream in = skt.getInputStream();
+            ObjectInputStream oin = new ObjectInputStream(in);
+
             String choice = "";
+            String username = "";
 
 
             // TODO: create a while loop!! but how??
             //while(choice.equals("0")!=true){
-                InputStreamReader in = new InputStreamReader(skt.getInputStream());
-                BufferedReader bf = new BufferedReader(in);
+                BufferedReader bf = new BufferedReader(new InputStreamReader(in));
+                PrintWriter pr = new PrintWriter(skt.getOutputStream());
 
-                choice = bf.readLine();
+                choice = (String) oin.readObject();
+                
                 System.out.println("server choice : " + choice);
                 // NOTE: wants us to use "instanceof" here
                 // CURRENT: choice = null?
@@ -44,27 +56,37 @@ public class BlogServer {
                     // NOTE: this works!!! (with client code)
                     // However: Document says that this should be wrapped in 
                     // PostSubmission class before being sent over (ignoring for now)
-                    // TODO: add this tweet to tweets
                     blog.addTweet(tweet);
                 }
                 if (choice.equals("2")==true){
-                    // read latest tweet
-                    System.out.println("Going to blog to read latest tweet");
+                    // Send client latest tweet
                     BlogPost post = (BlogPost)blog.readOne();
-                    // TODO: need to convert post into a readable thing
-                    PrintWriter pr = new PrintWriter(skt.getOutputStream());
-                    pr.println(postReq.formatPost(post.toJson())); // param has to be string
-                    // post.toJson() looks like JSON object
+                    pr.println(postReq.formatPost(post.toJson()));  // string
                     pr.flush();
 
                 }
                 else if (choice.equals("3")==true){
-                    // read all tweets
-                    blog.readAll();
+                    // Send client all tweets
+                    // ISSUE: have to be AbstractPost or is blogpost ok?
+                    List<BlogPost> posts = postReq.readTweets(1,"");
+                    for (BlogPost post : posts){
+                        pr.println(postReq.formatPost(post.toJson()));
+                    }
+                    pr.flush();
                 }
                 else if (choice.equals("4")==true){
                     // read your tweets
-                    blog.readOwnPost();
+
+                    // How to write to client: 
+                    oout.writeObject("Please enter your name: ");
+                    // how to read from server: String b = (String) oin.readObject();
+                    username = (String) oin.readObject();
+                    System.out.println("Username = "+username);
+                    List<BlogPost> posts = postReq.readTweets(0, username);
+                    for (BlogPost post : posts){
+                        oout.writeObject(postReq.formatPost(post.toJson()));
+                    }
+                    pr.flush();
                 }
                 else if (choice.equals("0")==true){
                     //exit TODO - not sure what to do here!
@@ -78,6 +100,9 @@ public class BlogServer {
             pr.println("yes");
             pr.flush();
         */
+
+            oout.close();
+            in.close();
             
         }
         catch(IOException e){
