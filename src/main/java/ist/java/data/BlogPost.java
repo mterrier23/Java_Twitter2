@@ -8,7 +8,6 @@ import java.util.Date;
 public class BlogPost extends AbstractPost {
 
     public BlogPost(){
-
     }
 
     public BlogPost(String author, String tweet, Date timestamp){
@@ -38,18 +37,4 @@ public class BlogPost extends AbstractPost {
     public void setTime(){
         this.timestamp = new Date();
     }
-
-    // public String toJson() {
-    //     return new Gson().toJson(this);
-    // }
-
-    // returns a JSON object ^ 
-
-    /*
-    @Override
-    public String toString() {
-        return new StringBuffer(" Author: ").append(this.author)
-            .append(" Tweet: ").append(this.tweet).append(" Date: ").append(this.timestamp);
-    }
-    */
 }

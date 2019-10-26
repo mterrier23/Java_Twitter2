@@ -10,20 +10,14 @@ import java.util.*;
 public class BlogServer {
 
     private static Blog blog = new Blog();
-    // TODO: consider going thru postreq or postsub each time we want to access Blog ? prevents us from calling it twice!
     private static PostRequest postReq = new PostRequest();
 
     public static void main(String... args){
         try{
-            // read the file database for populating our blog
-           // blog.Blog();
-           
-
             ServerSocket connection = new ServerSocket(4040);
             System.out.println("Waiting for request...");
             Socket skt = connection.accept();
             System.out.println("Client connected");
-
             
             // used for sending to the client <-- close at the bottom
             OutputStream out = skt.getOutputStream();
@@ -36,71 +30,65 @@ public class BlogServer {
             String choice = "";
             String username = "";
 
-
-            // TODO: create a while loop!! but how??
-            //while(choice.equals("0")!=true){
+            do{
                 BufferedReader bf = new BufferedReader(new InputStreamReader(in));
                 PrintWriter pr = new PrintWriter(skt.getOutputStream());
 
                 choice = (String) oin.readObject();
                 
                 System.out.println("server choice : " + choice);
-                // NOTE: wants us to use "instanceof" here
-                // CURRENT: choice = null?
-                if (choice.equals("1")==true){
+                if (choice.equals("1")==true){                    
                     BlogPost tweet = new BlogPost();
-                    tweet.setAuthor(bf.readLine());
-                    tweet.setMessage(bf.readLine());
+                    oout.writeObject("Please enter your name: ");
+                    username = (String) oin.readObject();
+                    tweet.setAuthor(username);
+                    oout.writeObject("Please write your message (maximum 120 characters): ");
+                    tweet.setMessage((String) oin.readObject());
                     tweet.setTime();
-                    System.out.println("Tweet message = "+tweet.getMessage());
-                    // NOTE: this works!!! (with client code)
-                    // However: Document says that this should be wrapped in 
-                    // PostSubmission class before being sent over (ignoring for now)
                     blog.addTweet(tweet);
+                    System.out.println("Finished adding tweet to database");
                 }
-                if (choice.equals("2")==true){
+                if (choice.equals("2")==true)
+                {
                     // Send client latest tweet
                     BlogPost post = (BlogPost)blog.readOne();
-                    pr.println(postReq.formatPost(post.toJson()));  // string
-                    pr.flush();
-
+                    oout.writeObject(postReq.formatPost(post.toJson()));
+                    oout.flush();
                 }
-                else if (choice.equals("3")==true){
+                else if (choice.equals("3")==true)
+                {
                     // Send client all tweets
-                    // ISSUE: have to be AbstractPost or is blogpost ok?
-                    List<BlogPost> posts = postReq.readTweets(1,"");
+                    List<BlogPost> posts = postReq.readTweets(1,""); 
+                    oout.writeObject(posts.size());
                     for (BlogPost post : posts){
-                        pr.println(postReq.formatPost(post.toJson()));
+                        oout.writeObject(postReq.formatPost(post.toJson())+"\n");
                     }
-                    pr.flush();
+                    oout.flush();
+                    System.out.println("Finished writing all posts to client");
                 }
-                else if (choice.equals("4")==true){
-                    // read your tweets
-
-                    // How to write to client: 
+                else if (choice.equals("4")==true)
+                {
+                    // Send client own tweets
                     oout.writeObject("Please enter your name: ");
-                    // how to read from server: String b = (String) oin.readObject();
                     username = (String) oin.readObject();
                     System.out.println("Username = "+username);
-                    List<BlogPost> posts = postReq.readTweets(0, username);
+
+                    List<BlogPost> posts = postReq.readTweets(0, username.toLowerCase());
+                    oout.writeObject(posts.size());
                     for (BlogPost post : posts){
-                        oout.writeObject(postReq.formatPost(post.toJson()));
+                        oout.writeObject(postReq.formatPost(post.toJson())+"\n");
                     }
-                    pr.flush();
+                    oout.flush();
+                    System.out.println("Finished writing user's posts to client");
                 }
                 else if (choice.equals("0")==true){
-                    //exit TODO - not sure what to do here!
+                    // exit from loop + connection
+                    break;
                 }
-           // }
+            }while(choice.equals("0")==false);
 
-
-            // to write back to client!!
-        /*
-            PrintWriter pr = new PrintWriter(skt.getOutputStream());
-            pr.println("yes");
-            pr.flush();
-        */
-
+            System.out.println("Disconnecting from Client, Goodbye!");
+ 
             oout.close();
             in.close();
             
